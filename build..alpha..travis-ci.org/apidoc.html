@@ -1,0 +1,372 @@
+<div class="apidocDiv">
+<style>
+/*csslint
+*/
+.apidocDiv {
+    background: #fff;
+    font-family: Arial, Helvetica, sans-serif;
+}
+.apidocDiv a[href] {
+    color: #33f;
+    font-weight: bold;
+    text-decoration: none;
+}
+.apidocDiv a[href]:hover {
+    text-decoration: underline;
+}
+.apidocCodeCommentSpan {
+    background: #bbf;
+    color: #000;
+    display: block;
+}
+.apidocCodeKeywordSpan {
+    color: #d00;
+    font-weight: bold;
+}
+.apidocCodePre {
+    background: #eef;
+    border: 1px solid;
+    color: #777;
+    padding: 5px;
+    white-space: pre-wrap;
+}
+.apidocFooterDiv {
+    margin-top: 20px;
+    text-align: center;
+}
+.apidocModuleLi {
+    margin-top: 10px;
+}
+.apidocSectionDiv {
+    border-top: 1px solid;
+    margin-top: 20px;
+}
+.apidocSignatureSpan {
+    color: #777;
+    font-weight: bold;
+}
+</style>
+<h1>api documentation for
+    <a
+
+        href="https://github.com/wit-ai/node-wit#readme"
+
+    >node-wit (v4.2.0)</a>
+</h1>
+<h4>Wit.ai Node.js SDK</h4>
+<div class="apidocSectionDiv"><a
+    href="#apidoc.tableOfContents"
+    id="apidoc.tableOfContents"
+><h1>table of contents</h1></a><ol>
+
+    <li class="apidocModuleLi"><a href="#apidoc.module.node-wit">module node-wit</a><ol>
+
+        <li>
+
+            <a class="apidocElementLiA" href="#apidoc.element.node-wit.Wit">
+            function <span class="apidocSignatureSpan">node-wit.</span>Wit
+            <span class="apidocSignatureSpan">(opts)</span>
+            </a>
+
+        </li>
+
+        <li>
+
+            <a class="apidocElementLiA" href="#apidoc.element.node-wit.interactive">
+            function <span class="apidocSignatureSpan">node-wit.</span>interactive
+            <span class="apidocSignatureSpan">(wit, initContext, maxSteps)</span>
+            </a>
+
+        </li>
+
+        <li>
+
+            <span class="apidocSignatureSpan">object <span class="apidocSignatureSpan">node-wit.</span>log</span>
+
+        </li>
+
+    </ol></li>
+
+    <li class="apidocModuleLi"><a href="#apidoc.module.node-wit.log">module node-wit.log</a><ol>
+
+        <li>
+
+            <a class="apidocElementLiA" href="#apidoc.element.node-wit.log.Logger">
+            function <span class="apidocSignatureSpan">node-wit.log.</span>Logger
+            <span class="apidocSignatureSpan">(lvl)</span>
+            </a>
+
+        </li>
+
+        <li>
+
+            <span class="apidocSignatureSpan">string <span class="apidocSignatureSpan">node-wit.log.</span>DEBUG</span>
+
+        </li>
+
+        <li>
+
+            <span class="apidocSignatureSpan">string <span class="apidocSignatureSpan">node-wit.log.</span>ERROR</span>
+
+        </li>
+
+        <li>
+
+            <span class="apidocSignatureSpan">string <span class="apidocSignatureSpan">node-wit.log.</span>INFO</span>
+
+        </li>
+
+        <li>
+
+            <span class="apidocSignatureSpan">string <span class="apidocSignatureSpan">node-wit.log.</span>WARN</span>
+
+        </li>
+
+    </ol></li>
+
+</ol></div>
+
+<div class="apidocSectionDiv">
+<h1><a href="#apidoc.module.node-wit" id="apidoc.module.node-wit">module node-wit</a></h1>
+
+
+    <h2>
+        <a href="#apidoc.element.node-wit.Wit" id="apidoc.element.node-wit.Wit">
+        function <span class="apidocSignatureSpan">node-wit.</span>Wit
+        <span class="apidocSignatureSpan">(opts)</span>
+        </a>
+    </h2>
+    <ul>
+    <li>description and source-code<pre class="apidocCodePre">function Wit(opts) {
+  var _this = this;
+
+  if (!(this instanceof Wit)) {
+    return new Wit(opts);
+  }
+
+  var _config = this.config = Object.freeze(validate(opts)),
+      accessToken = _config.accessToken,
+      apiVersion = _config.apiVersion,
+      actions = _config.actions,
+      headers = _config.headers,
+      logger = _config.logger,
+      witURL = _config.witURL;
+
+  this._sessions = {};
+
+  this.message = function (message, context) {
+    var qs = &#x27;q=&#x27; + encodeURIComponent(message);
+    if (context) {
+      qs += &#x27;&#x26;context=&#x27; + encodeURIComponent(JSON.stringify(context));
+    }
+    var method = &#x27;GET&#x27;;
+    var fullURL = witURL + &#x27;/message?&#x27; + qs;
+    var handler = makeWitResponseHandler(logger, &#x27;message&#x27;);
+    logger.debug(method, fullURL);
+    return fetch(fullURL, {
+      method: method,
+      headers: headers
+    }).then(function (response) {
+      return Promise.all([response.json(), response.status]);
+    }).then(handler);
+  };
+
+  this.converse = function (sessionId, message, context, reset) {
+    var qs = &#x27;session_id=&#x27; + encodeURIComponent(sessionId);
+    if (message) {
+      qs += &#x27;&#x26;q=&#x27; + encodeURIComponent(message);
+    }
+    if (reset) {
+      qs += &#x27;&#x26;reset=true&#x27;;
+    }
+    var method = &#x27;POST&#x27;;
+    var fullURL = witURL + &#x27;/converse?&#x27; + qs;
+    var handler = makeWitResponseHandler(logger, &#x27;converse&#x27;);
+    logger.debug(method, fullURL);
+    return fetch(fullURL, {
+      method: method,
+      headers: headers,
+      body: JSON.stringify(context)
+    }).then(function (response) {
+      return Promise.all([response.json(), response.status]);
+    }).then(handler);
+  };
+
+  var continueRunActions = function continueRunActions(sessionId, currentRequest, message, prevContext, i) {
+    return function (json) {
+      if (i &#x3c; 0) {
+        logger.warn(&#x27;Max steps reached, stopping.&#x27;);
+        return prevContext;
+      }
+      if (currentRequest !== _this._sessions[sessionId]) {
+        return prevContext;
+      }
+      if (!json.type) {
+        throw new Error(&#x27;Couldn\&#x27;t find type in Wit response&#x27;);
+      }
+
+      logger.debug(&#x27;Context: &#x27; + JSON.stringify(prevContext));
+      logger.debug(&#x27;Response type: &#x27; + json.type);
+
+      // backwards-compatibility with API version 20160516
+      if (json.type === &#x27;merge&#x27;) {
+        json.type = &#x27;action&#x27;;
+        json.action = &#x27;merge&#x27;;
+      }
+
+      if (json.type === &#x27;error&#x27;) {
+        throw new Error(&#x27;Oops, I don\&#x27;t know what to do.&#x27;);
+      }
+
+      if (json.type === &#x27;stop&#x27;) {
+        return prevContext;
+      }
+
+      var request = {
+        sessionId: sessionId,
+        context: clone(prevContext),
+        text: message,
+        entities: json.entities
+      };
+      if (json.type === &#x27;msg&#x27;) {
+        var response = {
+          text: json.msg,
+          quickreplies: json.quickreplies
+        };
+        return runAction(actions, &#x27;send&#x27;, request, response).then(function (ctx) {
+          if (ctx) {
+            throw new Error(&#x27;Cannot update context after \&#x27;send\&#x27; action&#x27;);
+          }
+          if (currentRequest !== _this._sessions[sessionId]) {
+            return ctx;
+          }
+          return _this.converse(sessionId, null, prevContext).then(continueRunActions(sessionId, currentRequest, message, prevContext
+, i - 1));
+        });
+      } else if (json.type === &#x27;action&#x27;) {
+        return runAction(actions, json.action, request).then(function (ctx) {
+          var nextContext = ctx || {};
+          if (currentRequest !== _this._sessions[sessionId]) {
+            return nextContext;
+          }
+          return _this.converse(sessionId, null, nextContext).then(continueRunActions(sessionId, currentRequest, message, nextContext
+, i - 1));
+        });
+      } else {
+        logger.debug(&#x27;unknown response type &#x27; + json.type);
+        throw new Error(&#x27;unknown response type &#x27; + json.type);
+      }
+    };
+  };
+
+  this.runActions = function (sessionId, message, context, maxSteps) {
+    var _this2 = this;
+
+    if (!actions) throwMustHaveActions();
+    var steps = maxSteps ? maxSteps : DEFAULT_MAX_STEPS;
+    // Figuring out whether we need to reset the last turn.
+    // Each new call inc ...</pre></li>
+    <li>example usage<pre class="apidocCodePre">n/a</pre></li>
+    </ul>
+
+
+
+    <h2>
+        <a href="#apidoc.element.node-wit.interactive" id="apidoc.element.node-wit.interactive">
+        function <span class="apidocSignatureSpan">node-wit.</span>interactive
+        <span class="apidocSignatureSpan">(wit, initContext, maxSteps)</span>
+        </a>
+    </h2>
+    <ul>
+    <li>description and source-code<pre class="apidocCodePre">interactive = function (wit, initContext, maxSteps) {
+  var context = (typeof initContext === &#x27;undefined&#x27; ? &#x27;undefined&#x27; : _typeof(initContext)) === &#x27;object&#x27; ? initContext : {};
+  var sessionId = uuid.v1();
+
+  var steps = maxSteps ? maxSteps : DEFAULT_MAX_STEPS;
+  var rl = readline.createInterface({
+    input: process.stdin,
+    output: process.stdout
+  });
+  rl.setPrompt(&#x27;&#x3e; &#x27;);
+  var prompt = function prompt() {
+    rl.prompt();
+    rl.write(null, { ctrl: true, name: &#x27;e&#x27; });
+  };
+  prompt();
+  rl.on(&#x27;line&#x27;, function (line) {
+    line = line.trim();
+    if (!line) {
+      return prompt();
+    }
+    wit.runActions(sessionId, line, context, steps).then(function (ctx) {
+      context = ctx;
+      prompt();
+    }).catch(function (err) {
+      return console.error(err);
+    });
+  });
+}</pre></li>
+    <li>example usage<pre class="apidocCodePre">n/a</pre></li>
+    </ul>
+
+
+
+
+</div>
+
+<div class="apidocSectionDiv">
+<h1><a href="#apidoc.module.node-wit.log" id="apidoc.module.node-wit.log">module node-wit.log</a></h1>
+
+
+    <h2>
+        <a href="#apidoc.element.node-wit.log.Logger" id="apidoc.element.node-wit.log.Logger">
+        function <span class="apidocSignatureSpan">node-wit.log.</span>Logger
+        <span class="apidocSignatureSpan">(lvl)</span>
+        </a>
+    </h2>
+    <ul>
+    <li>description and source-code<pre class="apidocCodePre">function Logger(lvl) {
+  var _this = this;
+
+  this.level = lvl || INFO;
+
+  levels.forEach(function (x) {
+    var should = levels.indexOf(x) &#x3e;= levels.indexOf(lvl);
+    _this[x] = should ? funcs[x] : noop;
+  });
+}</pre></li>
+    <li>example usage<pre class="apidocCodePre">...
+  opts.witURL = opts.witURL || DEFAULT_WIT_URL;
+  opts.apiVersion = opts.apiVersion || DEFAULT_API_VERSION;
+  opts.headers = opts.headers || {
+    &#x27;Authorization&#x27;: &#x27;Bearer &#x27; + opts.accessToken,
+    &#x27;Accept&#x27;: &#x27;application/vnd.wit.&#x27; + opts.apiVersion + &#x27;+json&#x27;,
+    &#x27;Content-Type&#x27;: &#x27;application/json&#x27;
+  };
+  opts.logger = opts.logger || new log.<span class="apidocCodeKeywordSpan">Logger</span>(log.INFO);
+  if (opts.actions) {
+    opts.actions = validateActions(opts.logger, opts.actions);
+  }
+
+  return opts;
+};
+...</pre></li>
+    </ul>
+
+
+
+
+
+
+
+
+
+
+</div>
+
+<div class="apidocFooterDiv">
+    [ this document was created with
+    <a href="https://github.com/kaizhu256/node-utility2" target="_blank">utility2</a>
+    ]
+</div>
+</div>
